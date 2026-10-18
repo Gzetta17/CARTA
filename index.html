@@ -154,7 +154,7 @@
 
     <!-- AUDIO (Pon tu archivo musica.mp4 o musica.mp3 aquí) -->
     <audio id="myAudio" loop>
-    <source src="/musica.mp3" type="audio/mp3">
+    <source src="musica.mp3" type="audio/mp3">
 </audio>
 
     <div id="music-player" class="hoverable" onclick="toggleMusic()">
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL -->
+<!-- CONTENIDO PRINCIPAL -->
     <div id="main-content">
         
         <div class="hero-title">
@@ -195,7 +195,8 @@
 
         <div class="timeline-item reveal">
             <div class="tl-photo hoverable tilt-effect">
-                <img src="/img/kunyfausto.jpeg" onerror="this.src='https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&q=80';">
+                <!-- ERROR CORREGIDO AQUÍ: Se eliminó la barra inclinada inicial (/) -->
+                <img src="img/kunyfausto.jpeg" onerror="this.src='https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&q=80';">
             </div>
             <div class="tl-text">
                 <h3>Nuestro Refugio</h3>
@@ -236,8 +237,6 @@
             <div class="gallery-img-wrapper reveal hoverable tilt-effect">
                 <img src="img/uquia.jpeg" onerror="this.src='https://images.unsplash.com/photo-1518556604245-0d41dfa13d74?w=400&q=80';">
             </div>
-            <!-- PUEDES PEGAR MÁS BLOQUES 'gallery-img-wrapper' AQUÍ ABAJO -->
-            
             
         </div>
 
