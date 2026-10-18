@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestro Tiempo Infinito ∞</title>
+    <!-- Fuentes Premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- VARIABLES DE ALTA GAMA --- */
+        :root {
+            --bg-deep: #0a050d;
+            --rose-gold: #e2a98f;
+            --blush: #f2d0ce;
+            --text-light: #fdfbfb;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(226, 169, 143, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-deep); color: var(--text-light);
+            font-family: 'Montserrat', sans-serif; overflow-x: hidden;
+            cursor: none; /* Oculta el cursor por defecto para usar el nuestro */
+        }
+
+        /* --- CURSOR MÁGICO --- */
+        .custom-cursor {
+            position: fixed; top: 0; left: 0; width: 30px; height: 30px;
+            border: 1px solid var(--rose-gold); border-radius: 50%;
+            pointer-events: none; z-index: 99999;
+            transition: transform 0.1s ease-out, width 0.2s, height 0.2s;
+            transform: translate(-50%, -50%); mix-blend-mode: screen;
+        }
+        .custom-cursor.hover { width: 50px; height: 50px; background: rgba(226, 169, 143, 0.1); border-color: var(--blush); }
+
+        /* --- FONDO DE CONSTELACIONES INTERACTIVO --- */
+        #canvas-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
+
+        /* --- REPRODUCTOR DE MÚSICA --- */
+        #music-player {
+            position: fixed; top: 30px; right: 30px; width: 45px; height: 45px;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); border-radius: 50%;
+            z-index: 9990; display: none; justify-content: center; align-items: center; cursor: none;
+            backdrop-filter: blur(10px);
+        }
+        .vinyl { width: 25px; height: 25px; background: #111; border-radius: 50%; border: 1px solid #444; position: relative; }
+        .vinyl::after { content: ''; position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: var(--rose-gold); border-radius: 50%; transform: translate(-50%, -50%); }
+        .playing .vinyl { animation: spin 4s linear infinite; box-shadow: 0 0 15px var(--rose-gold); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- PANTALLA INICIAL --- */
+        #intro-screen {
+            position: fixed; width: 100vw; height: 100vh; background: var(--bg-deep);
+            z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 2s ease, visibility 2s ease;
+        }
+        .intro-text { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--rose-gold); margin-bottom: 40px; letter-spacing: 2px; text-align: center; opacity: 0; animation: fadeIn 2s forwards 0.5s; }
+        
+        .ticket-3d {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            border: 1px solid var(--glass-border); border-radius: 15px; width: 90%; max-width: 450px;
+            padding: 40px; text-align: center; backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            transform-style: preserve-3d; transform: perspective(1000px); transition: transform 0.1s;
+        }
+        .ticket-3d h2 { font-family: 'Cormorant Garamond', serif; color: var(--text-light); font-size: 28px; letter-spacing: 5px; margin-bottom: 30px; transform: translateZ(30px); }
+        .slider-wrapper { background: rgba(0,0,0,0.8); border-radius: 40px; height: 60px; position: relative; display: flex; align-items: center; border: 1px solid var(--glass-border); overflow: hidden; transform: translateZ(40px); }
+        .slider-text { position: absolute; width: 100%; text-align: center; pointer-events: none; font-size: 11px; letter-spacing: 3px; color: var(--rose-gold); animation: pulse 2s infinite; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 100%; z-index: 2; margin: 0; outline: none; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 50px; width: 50px; border-radius: 50%; background: var(--rose-gold); 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 0 20px var(--rose-gold);
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        #main-content { position: relative; z-index: 10; display: none; padding: 100px 5%; max-width: 1200px; margin: 0 auto; opacity: 0; transition: opacity 2s ease; }
+        .hero-title { text-align: center; margin-bottom: 15vh; }
+        .hero-title h1 { font-family: 'Cormorant Garamond', serif; font-size: 4rem; color: var(--text-light); font-weight: 400; letter-spacing: 2px; }
+        .hero-title span { display: block; font-size: 1.5rem; color: var(--rose-gold); font-style: italic; margin-top: 10px; }
+
+        /* --- LÍNEA DE TIEMPO 3D --- */
+        .timeline-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15vh; opacity: 0; transform: translateY(100px); transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1); gap: 50px; }
+        .timeline-item.visible { opacity: 1; transform: translateY(0); }
+        .timeline-item:nth-child(even) { flex-direction: row-reverse; }
+
+        .tl-photo { width: 45%; border-radius: 20px; overflow: hidden; position: relative; transform-style: preserve-3d; transform: perspective(1000px); }
+        .tl-photo img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 20px; transition: transform 0.5s; display: block; }
+        .tl-photo::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent); transform: skewX(-20deg); transition: 0.5s; pointer-events: none; }
+        .tl-photo:hover::after { left: 150%; }
+
+        .tl-text { width: 50%; }
+        .tl-text h3 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; color: var(--rose-gold); margin-bottom: 20px; }
+        .tl-text p { font-size: 1.1rem; line-height: 1.9; color: rgba(255,255,255,0.8); font-weight: 300; }
+
+        /* --- NUEVA GALERÍA GRID PURA (SOLO FOTOS) --- */
+        .gallery-title { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--blush); margin-bottom: 60px; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; margin-bottom: 15vh; }
+        
+        .gallery-img-wrapper {
+            position: relative; border-radius: 15px; overflow: hidden;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transform-style: preserve-3d; transform: perspective(1000px);
+            opacity: 0; transform: translateY(50px); transition: opacity 0.8s, transform 0.8s;
+            aspect-ratio: 1 / 1;
+        }
+        .gallery-img-wrapper.visible { opacity: 1; transform: translateY(0); }
+        .gallery-img-wrapper img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .gallery-img-wrapper:hover img {
+            transform: scale(1.15) translateZ(20px);
+        }
+
+        /* --- CORAZÓN MAGNÉTICO --- */
+        .heart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 15vh; }
+        .heart-msg { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.8rem; color: var(--blush); margin-bottom: 40px; transition: color 0.3s; text-align: center; }
+        .heart-container { position: relative; width: 160px; height: 160px; filter: drop-shadow(0 0 20px rgba(226, 169, 143, 0.1)); }
+        .heart-outline { width: 100%; height: 100%; fill: transparent; stroke: rgba(226, 169, 143, 0.3); stroke-width: 1.5; transition: stroke 0.3s; }
+        .heart-fill-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height 0.1s linear; }
+        .heart-fill-wrapper svg { position: absolute; bottom: 0; left: 0; width: 160px; height: 160px; fill: var(--rose-gold); filter: drop-shadow(0 0 30px var(--rose-gold)); }
+
+        /* --- RASPADITA --- */
+        #scratch-section { display: none; flex-direction: column; align-items: center; opacity: 0; transform: translateY(30px); transition: all 1.5s ease; padding-bottom: 10vh;}
+        .scratch-box { position: relative; width: 350px; height: 200px; border-radius: 15px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); border: 1px solid var(--rose-gold); overflow: hidden; }
+        .scratch-prize { position: absolute; width: 100%; height: 100%; background: var(--bg-deep); display: flex; justify-content: center; align-items: center; padding: 20px; text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--rose-gold); line-height: 1.5; }
+        #scratch-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+
+        /* CONFETI */
+        .confetti { position: fixed; top: -10px; z-index: 9999; pointer-events: none; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .timeline-item, .timeline-item:nth-child(even) { flex-direction: column; gap: 30px; text-align: center; }
+            .tl-photo, .tl-text { width: 100%; }
+            .hero-title h1 { font-size: 2.5rem; }
+            .custom-cursor { display: none; } /* En móviles desactivamos el cursor mágico */
+            body { cursor: auto; }
+            #music-player { cursor: pointer; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CURSOR PERSONALIZADO (Aparece solo en PC) -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- FONDO DE CONSTELACIONES INTERACTIVO -->
+    <canvas id="canvas-bg"></canvas>
+
+    <!-- AUDIO (Pon tu archivo musica.mp4 o musica.mp3 aquí) -->
+    <audio id="myAudio" loop>
+        <source src="/img/the_mountain-love-591389.mp3" type="audio/mp4">
+    </audio>
+
+    <div id="music-player" class="hoverable" onclick="toggleMusic()">
+        <div class="vinyl"></div>
+    </div>
+
+    <!-- PANTALLA INICIAL: PASAJE HOLOGRÁFICO -->
+    <div id="intro-screen">
+        <div class="intro-text">Para vivir una eternidad juntos...</div>
+        <div class="ticket-3d hoverable tilt-effect">
+            <h2>VUELO VIP</h2>
+            <p style="color: rgba(255,255,255,0.5); font-weight: 300; margin-bottom: 40px;">26 de Octubre • Asiento: A Tu Lado</p>
+            <div class="slider-wrapper">
+                <div class="slider-text" id="slider-txt">DESLIZAR PARA EMBARCAR</div>
+                <input type="range" min="0" max="100" value="0" id="unlock-slider">
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div id="main-content">
+        
+        <div class="hero-title">
+            <h1 id="typing-title"></h1>
+            <span>A tu lado, el reloj no importa.</span>
+        </div>
+
+        <!-- LÍNEA DE TIEMPO -->
+        <div class="timeline-item reveal">
+            <div class="tl-photo hoverable tilt-effect">
+                <img src="img/HONGO.jpeg" onerror="this.src='https://images.unsplash.com/photo-1516655855035-d5215bcb5604?w=800&q=80';">
+            </div>
+            <div class="tl-text">
+                <h3>Rutas Inolvidables</h3>
+                <p>Al pensar en todo lo que recorrimos, parece magia. Desde los senderos de Zonda y Rivadavia, hasta maravillarnos con los cañones rojizos de Uquía y la inmensidad blanca de las Salinas Grandes y Tilcara. Sos mi compañera de aventuras perfecta en cada rincón del mapa.</p>
+            </div>
+        </div>
+
+        <div class="timeline-item reveal">
+            <div class="tl-photo hoverable tilt-effect">
+                <img src="/img/KUNYFAUSTO.jpeg" onerror="this.src='https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&q=80';">
+            </div>
+            <div class="tl-text">
+                <h3>Nuestro Refugio</h3>
+                <p>Pero el mejor viaje es el que hacemos todos los días en casa. Esas tardes proyectando cosas nuevas juntos, aguantando las locuras y saltos de <b>Kun</b>, y disfrutando la paz profunda de <b>Fausto</b> durmiendo al sol. Ahí, en nuestra rutina, el tiempo se detiene.</p>
+            </div>
+        </div>
+
+        
+        <div class="timeline-item reveal">
+            <div class="tl-photo hoverable tilt-effect">
+                <img src="img/GYM.jpeg" onerror="this.src='https://images.unsplash.com/photo-1436491865332-7a615061c4ca?w=800&q=80';">
+            </div>
+            <div class="tl-text">
+                <h3>Nuestros Proyectos</h3>
+                <p>Me encanta la forma en que hacemos equipo. Ver cómo nuestros proyectos diarios van tomando forma me llena de orgullo. Ya sea resolviendo cosas de la casa, planificando la semana o simplemente compartiendo un rato tranquilo, todo es mejor porque estamos juntos. El futuro no es solo un destino, es esto hermoso que construimos todos los días, codo a codo.</p>
+            </div>
+        </div>
+
+        <!-- NUEVA GALERÍA PURA DE FOTOS -->
+        <div class="gallery-title reveal">Momentos Inolvidables</div>
+        <div class="gallery-grid">
+            
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/CASCADA.jpeg" onerror="this.src='https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&q=80';">
+            </div>
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/FIESTA.jpeg" onerror="this.src='https://images.unsplash.com/photo-1494774157365-9e04c6720e47?w=400&q=80';">
+            </div>
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/HONGO.jpeg" onerror="this.src='https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=400&q=80';">
+            </div>
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/LACASONA.jpeg" onerror="this.src='https://images.unsplash.com/photo-1518556604245-0d41dfa13d74?w=400&q=80';">
+            </div>
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/PURMAMARCA.jpeg" onerror="this.src='https://images.unsplash.com/photo-1518556604245-0d41dfa13d74?w=400&q=80';">
+            </div>
+            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
+                <img src="img/UQUIA.jpeg" onerror="this.src='https://images.unsplash.com/photo-1518556604245-0d41dfa13d74?w=400&q=80';">
+            </div>
+            <!-- PUEDES PEGAR MÁS BLOQUES 'gallery-img-wrapper' AQUÍ ABAJO -->
+            
+        </div>
+
+        <!-- CORAZÓN INTERACTIVO -->
+        <div class="heart-section reveal" id="heart-zone">
+            <div class="heart-msg" id="heart-msg">Mantén presionado para conectar nuestros latidos</div>
+            <div class="heart-container hoverable" id="heart-btn">
+                <svg class="heart-outline" viewBox="-4 -4 40 38">
+                    <path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2 c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+                </svg>
+                <div class="heart-fill-wrapper" id="heart-fill">
+                    <svg viewBox="-4 -4 40 38" preserveAspectRatio="xMinYMax slice">
+                        <path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2 c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- RASPADITA FINAL -->
+        <div id="scratch-section">
+            <div style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--blush); margin-bottom: 20px; text-align: center;">El tiempo esconde una sorpresa...</div>
+            <div class="scratch-box hoverable">
+                <div class="scratch-prize">
+                    VALE POR UNA SORPRESA ESPECIAL DE ANIVERSARIO ✨
+                </div>
+                <canvas id="scratch-canvas"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CURSOR MÁGICO JS ---
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        document.querySelectorAll('.hoverable, input, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // --- EFECTO 3D (TILT) EN TARJETAS ---
+        const tiltCards = document.querySelectorAll('.tilt-effect');
+        tiltCards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                const centerX = rect.width / 2; const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10; 
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+
+        // --- FONDO DE CONSTELACIONES (CANVAS) ---
+        const canvasBg = document.getElementById('canvas-bg');
+        const ctxBg = canvasBg.getContext('2d');
+        let width, height, particles = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function initCanvas() {
+            width = canvasBg.width = window.innerWidth;
+            height = canvasBg.height = window.innerHeight;
+            particles = [];
+            let particleCount = (window.innerWidth < 768) ? 40 : 100;
+            for(let i=0; i<particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2
+                });
+            }
+        }
+        window.addEventListener('resize', initCanvas);
+        window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('mouseout', () => { mouse.x = undefined; mouse.y = undefined; });
+
+        function animateCanvas() {
+            ctxBg.clearRect(0, 0, width, height);
+            ctxBg.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > width) p.vx = -p.vx;
+                if(p.y < 0 || p.y > height) p.vy = -p.vy;
+                
+                ctxBg.beginPath(); ctxBg.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctxBg.fill();
+
+                if(mouse.x != null) {
+                    let dx = mouse.x - p.x; let dy = mouse.y - p.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < mouse.radius) {
+                        ctxBg.beginPath(); ctxBg.strokeStyle = `rgba(226, 169, 143, ${1 - dist/mouse.radius})`;
+                        ctxBg.lineWidth = 0.5; ctxBg.moveTo(p.x, p.y); ctxBg.lineTo(mouse.x, mouse.y); ctxBg.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        initCanvas(); animateCanvas();
+
+        // --- ENTRADA Y AUDIO ---
+        const audio = document.getElementById('myAudio');
+        const musicPlayer = document.getElementById('music-player');
+        const slider = document.getElementById('unlock-slider');
+        const introScreen = document.getElementById('intro-screen');
+        const mainContent = document.getElementById('main-content');
+
+        slider.addEventListener('input', function() {
+            if (this.value >= 95) {
+                this.value = 100; this.disabled = true;
+                introScreen.style.opacity = '0';
+                setTimeout(() => {
+                    introScreen.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    musicPlayer.style.display = 'flex';
+                    audio.volume = 0.5; audio.play().then(() => musicPlayer.classList.add('playing')).catch(e=>{});
+                    
+                    setTimeout(() => {
+                        mainContent.style.opacity = '1';
+                        typeWriter();
+                        checkScroll();
+                    }, 100);
+                }, 1500);
+            }
+        });
+
+        function toggleMusic() {
+            if (audio.paused) { audio.play(); musicPlayer.classList.add('playing'); } 
+            else { audio.pause(); musicPlayer.classList.remove('playing'); }
+        }
+
+        // --- EFECTO MÁQUINA DE ESCRIBIR ---
+        const textToType = "Un Tiempo Infinito";
+        let typeIndex = 0;
+        function typeWriter() {
+            if (typeIndex < textToType.length) {
+                document.getElementById("typing-title").innerHTML += textToType.charAt(typeIndex);
+                typeIndex++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+
+        // --- ANIMACIÓN SCROLL ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        function checkScroll() { revealElements.forEach(el => observer.observe(el)); }
+
+        // --- CORAZÓN MAGNÉTICO ---
+        const heartBtn = document.getElementById('heart-btn');
+        const heartFill = document.getElementById('heart-fill');
+        const heartMsg = document.getElementById('heart-msg');
+        const scratchSection = document.getElementById('scratch-section');
+        const heartZone = document.getElementById('heart-zone');
+        
+        let pressInterval, fillPercentage = 0, isPressing = false;
+
+        function startHeartPress(e) {
+            e.preventDefault(); isPressing = true;
+            heartMsg.innerText = "Sincronizando energía...";
+            heartMsg.style.color = "var(--rose-gold)";
+            heartBtn.style.transform = "scale(1.1)";
+            
+            pressInterval = setInterval(() => {
+                fillPercentage += 1.5;
+                if(fillPercentage >= 100) fillPercentage = 100;
+                heartFill.style.height = fillPercentage + '%';
+                if(fillPercentage === 100) { clearInterval(pressInterval); unlockScratch(); }
+            }, 30);
+        }
+
+        function stopHeartPress() {
+            if(!isPressing || fillPercentage === 100) return;
+            isPressing = false; clearInterval(pressInterval);
+            heartBtn.style.transform = "scale(1)";
+            
+            let drainInterval = setInterval(() => {
+                if(isPressing) { clearInterval(drainInterval); return; }
+                fillPercentage -= 4;
+                if(fillPercentage <= 0) {
+                    fillPercentage = 0; clearInterval(drainInterval);
+                    heartMsg.innerText = "Mantén presionado para conectar nuestros latidos";
+                    heartMsg.style.color = "var(--blush)";
+                }
+                heartFill.style.height = fillPercentage + '%';
+            }, 20);
+        }
+
+        heartBtn.addEventListener('mousedown', startHeartPress);
+        heartBtn.addEventListener('touchstart', startHeartPress);
+        window.addEventListener('mouseup', stopHeartPress);
+        window.addEventListener('touchend', stopHeartPress);
+
+        function unlockScratch() {
+            heartZone.style.display = 'none';
+            scratchSection.style.display = 'flex';
+            setTimeout(() => {
+                scratchSection.style.opacity = '1';
+                scratchSection.style.transform = 'translateY(0)';
+                initScratchCard();
+                window.scrollBy({ top: 300, behavior: 'smooth' });
+            }, 100);
+        }
+
+        // --- RASPADITA PREMIUM Y CONFETI ---
+        function initScratchCard() {
+            const canvas = document.getElementById('scratch-canvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false; let brushSize = 35;
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width; canvas.height = rect.height;
+
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#e2a98f'); grad.addColorStop(0.5, '#c2856c'); grad.addColorStop(1, '#a66a54');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0a050d'; ctx.font = 'bold 22px Montserrat';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('✨ DESCUBRE LA MAGIA ✨', canvas.width / 2, canvas.height / 2);
+
+            ctx.globalCompositeOperation = 'destination-out';
+
+            function getPos(e) {
+                const bRect = canvas.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: x - bRect.left, y: y - bRect.top };
+            }
+
+            function scratch(e) {
+                if (!isDrawing) return; e.preventDefault();
+                const pos = getPos(e);
+                ctx.beginPath(); ctx.arc(pos.x, pos.y, brushSize, 0, Math.PI * 2); ctx.fill();
+                checkProgress();
+            }
+
+            canvas.addEventListener('mousedown', e => { isDrawing = true; scratch(e); });
+            canvas.addEventListener('touchstart', e => { isDrawing = true; scratch(e); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            window.addEventListener('touchend', () => isDrawing = false);
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('touchmove', scratch, { passive: false });
+
+            function checkProgress() {
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                let clear = 0;
+                for (let i = 3; i < data.length; i += 4) { if (data[i] === 0) clear++; }
+                if ((clear / (data.length / 4)) > 0.45) {
+                    canvas.style.transition = 'opacity 1s ease'; canvas.style.opacity = '0';
+                    setTimeout(() => { canvas.style.display = 'none'; fireConfetti(); }, 1000);
+                }
+            }
+        }
+
+        // --- SISTEMA DE CONFETI VIRTUAL ---
+        function fireConfetti() {
+            const colors = ['#e2a98f', '#f2d0ce', '#ffffff', '#dca77c'];
+            for(let i=0; i<100; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.width = Math.random() * 10 + 5 + 'px';
+                conf.style.height = Math.random() * 5 + 5 + 'px';
+                conf.style.animationDuration = Math.random() * 3 + 2 + 's';
+                conf.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 5000);
+            }
+        }
+    </script>
+</body>
+</html>
