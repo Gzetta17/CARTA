@@ -6,6 +6,10 @@
     <title>Nuestro Tiempo Infinito ∞</title>
     <!-- Fuentes Premium -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- LIBRERÍA DEL CARRUSEL 3D (Swiper) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
     <style>
         /* --- VARIABLES DE ALTA GAMA --- */
         :root {
@@ -22,7 +26,7 @@
         body {
             background-color: var(--bg-deep); color: var(--text-light);
             font-family: 'Montserrat', sans-serif; overflow-x: hidden;
-            cursor: none; /* Oculta el cursor por defecto para usar el nuestro */
+            cursor: none; /* Oculta el cursor por defecto */
         }
 
         /* --- CURSOR MÁGICO --- */
@@ -94,26 +98,28 @@
         .tl-text h3 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; color: var(--rose-gold); margin-bottom: 20px; }
         .tl-text p { font-size: 1.1rem; line-height: 1.9; color: rgba(255,255,255,0.8); font-weight: 300; }
 
-        /* --- NUEVA GALERÍA GRID PURA (SOLO FOTOS) --- */
-        .gallery-title { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--blush); margin-bottom: 60px; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; margin-bottom: 15vh; }
+        /* --- NUEVO CARRUSEL TECNOLÓGICO --- */
+        .gallery-title { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--blush); margin-bottom: 30px; }
+        .swiper-container-wrapper { width: 100%; overflow: hidden; margin-bottom: 15vh; padding-bottom: 20px; }
         
-        .gallery-img-wrapper {
-            position: relative; border-radius: 15px; overflow: hidden;
+        .swiper { width: 100%; padding-top: 30px; padding-bottom: 50px; }
+        .swiper-slide {
+            width: 260px; 
+            height: 350px; 
+            border-radius: 15px; 
             border: 1px solid var(--glass-border);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-            transform-style: preserve-3d; transform: perspective(1000px);
-            opacity: 0; transform: translateY(50px); transition: opacity 0.8s, transform 0.8s;
-            aspect-ratio: 1 / 1;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            overflow: hidden;
+            background-color: #000;
         }
-        .gallery-img-wrapper.visible { opacity: 1; transform: translateY(0); }
-        .gallery-img-wrapper img {
-            width: 100%; height: 100%; object-fit: cover; display: block;
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        @media (min-width: 768px) {
+            .swiper-slide { width: 320px; height: 420px; }
         }
-        .gallery-img-wrapper:hover img {
-            transform: scale(1.15) translateZ(20px);
-        }
+        .swiper-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        /* Puntos indicadores del carrusel */
+        .swiper-pagination-bullet { background: var(--blush); opacity: 0.4; }
+        .swiper-pagination-bullet-active { background: var(--rose-gold); opacity: 1; box-shadow: 0 0 10px var(--rose-gold); }
 
         /* --- CORAZÓN MAGNÉTICO --- */
         .heart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 15vh; }
@@ -154,8 +160,8 @@
 
     <!-- AUDIO (Pon tu archivo musica.mp4 o musica.mp3 aquí) -->
     <audio id="myAudio" loop>
-    <source src="musica.mp3" type="audio/mp3">
-</audio>
+        <source src="musica.mp3" type="audio/mp3">
+    </audio>
 
     <div id="music-player" class="hoverable" onclick="toggleMusic()">
         <div class="vinyl"></div>
@@ -174,7 +180,7 @@
         </div>
     </div>
 
-<!-- CONTENIDO PRINCIPAL -->
+    <!-- CONTENIDO PRINCIPAL -->
     <div id="main-content">
         
         <div class="hero-title">
@@ -214,29 +220,24 @@
             </div>
         </div>
 
-        <!-- NUEVA GALERÍA PURA DE FOTOS -->
+        <!-- === NUEVO CARRUSEL 3D (SWIPER) === -->
         <div class="gallery-title reveal">Momentos Inolvidables</div>
-        <div class="gallery-grid">
-            
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/cascada.jpg">
+        <div class="swiper-container-wrapper reveal">
+            <!-- Contenedor principal de Swiper -->
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <!-- Cada imagen es un slide -->
+                    <div class="swiper-slide hoverable"><img src="img/cascada.jpg"></div>
+                    <div class="swiper-slide hoverable"><img src="img/fiesta.jpg"></div>
+                    <div class="swiper-slide hoverable"><img src="img/valle.jpg"></div>
+                    <div class="swiper-slide hoverable"><img src="img/lacasona.jpg"></div>
+                    <div class="swiper-slide hoverable"><img src="img/purmamarca.jpg"></div>
+                    <div class="swiper-slide hoverable"><img src="img/uquia.jpg"></div>
+                    <!-- Puedes copiar y pegar más líneas de <div class="swiper-slide..."> para sumar fotos -->
+                </div>
+                <!-- Paginación (puntitos) -->
+                <div class="swiper-pagination"></div>
             </div>
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/fiesta.jpg">
-            </div>
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/valle.jpg">
-            </div>
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/lacasona.jpg">
-            </div>
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/purmamarca.jpg">
-            </div>
-            <div class="gallery-img-wrapper reveal hoverable tilt-effect">
-                <img src="img/uquia.jpg">
-            </div>
-            
         </div>
 
         <!-- CORAZÓN INTERACTIVO -->
@@ -266,6 +267,10 @@
         </div>
 
     </div>
+
+    <!-- SCRIPT DE LIBRERÍA SWIPER JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
     <script>
         // --- CURSOR MÁGICO JS ---
         const cursor = document.getElementById('cursor');
@@ -273,7 +278,7 @@
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
         });
-        document.querySelectorAll('.hoverable, input, button').forEach(el => {
+        document.querySelectorAll('.hoverable, input, button, .swiper-pagination-bullet').forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
         });
@@ -390,6 +395,30 @@
             entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
         }, { threshold: 0.1 });
         function checkScroll() { revealElements.forEach(el => observer.observe(el)); }
+
+        // --- INICIALIZAR CARRUSEL 3D ---
+        var mySwiper = new Swiper(".mySwiper", {
+            effect: "coverflow",
+            grabCursor: false, 
+            centeredSlides: true,
+            slidesPerView: "auto",
+            loop: true,
+            coverflowEffect: {
+                rotate: 20, /* Inclinación de las fotos laterales */
+                stretch: 0,
+                depth: 250, /* Profundidad del efecto 3D */
+                modifier: 1,
+                slideShadows: true, /* Sombras reales sobre las fotos */
+            },
+            autoplay: {
+                delay: 2500, /* Velocidad de cambio automático */
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+        });
 
         // --- CORAZÓN MAGNÉTICO ---
         const heartBtn = document.getElementById('heart-btn');
